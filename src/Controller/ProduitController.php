@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Produit;
 use App\Repository\ProduitRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,5 +35,20 @@ class ProduitController extends AbstractController
 
         $jsonProduitslist = $serializer->serialize($produitsList, 'json');
         return new JsonResponse($jsonProduitslist, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/produits/{id}', name: 'api_get_produit')]
+    public function getProduit(SerializerInterface    $serializer,
+                               Produit                $produit,
+                               TagAwareCacheInterface $cachePool,
+    ): JsonResponse
+    {
+        $idCache = 'getProduit' . $produit->getId();
+        $produit = $cachePool->get($idCache, function (ItemInterface $item) use ($produit) {
+            $item->tag('produitCache');
+            return $produit;
+        });
+        $jsonProduit = $serializer->serialize($produit, 'json');
+        return new JsonResponse($jsonProduit, Response::HTTP_OK, [], true);
     }
 }
