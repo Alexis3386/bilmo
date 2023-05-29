@@ -9,9 +9,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use JMS\Serializer\SerializerInterface;
 
 class ProduitController extends AbstractController
 {
@@ -25,7 +25,7 @@ class ProduitController extends AbstractController
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
-        $idCache = 'getAllBooks-' . $page . '-' . $limit;
+        $idCache = 'getAllProducts-' . $page . '-' . $limit;
         $produitsList = $cachePool->get($idCache, function (ItemInterface $item) use (
             $produitRepository, $page, $limit
         ) {

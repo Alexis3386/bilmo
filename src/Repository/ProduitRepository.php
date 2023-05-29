@@ -41,12 +41,12 @@ class ProduitRepository extends ServiceEntityRepository
         }
     }
 
-    public function findAllWithPagination(int $page, int $limit): PaginationInterface
+    public function findAllWithPagination(int $page, int $limit): array
     {
         $em =  $this->getEntityManager();
         $dql = "SELECT p from \App\Entity\Produit as p";
         $query = $em->createQuery($dql);
 
-        return $this->paginator->paginate($query, $page, $limit);
+        return $this->paginator->paginate($query, $page, $limit)->getItems();
     }
 }
