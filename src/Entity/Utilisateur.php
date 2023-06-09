@@ -20,7 +20,7 @@ class Utilisateur
     private ?string $adresseMail = null;
 
     #[ORM\ManyToOne(inversedBy: 'utilisateurs')]
-    private ?Client $client = null;
+    private Client $client;
 
     public function getId(): ?int
     {
@@ -51,16 +51,15 @@ class Utilisateur
         return $this;
     }
 
-    public function getClient(): ?Client
+    public function getClient(): Client
     {
         return $this->client;
     }
 
-    public function setClient(?Client $client): self
+    public function setClient(Client $client): self
     {
         $this->client = $client;
 
         return $this;
     }
-
 }
