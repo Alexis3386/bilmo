@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Produit;
 use App\Repository\ProduitRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +13,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
+use Hateoas\Representation\PaginatedRepresentation;
+use Hateoas\Representation\CollectionRepresentation;
 
 class ProduitController extends AbstractController
 {
@@ -20,17 +23,31 @@ class ProduitController extends AbstractController
                                     ProduitRepository      $produitRepository,
                                     Request                $request,
                                     TagAwareCacheInterface $cachePool,
+                                    PaginatorInterface     $paginator
     ): JsonResponse
     {
-        $page = $request->get('page', 1);
-        $limit = $request->get('limit', 3);
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 4);
 
         $idCache = 'getAllProducts-' . $page . '-' . $limit;
         $produitsList = $cachePool->get($idCache, function (ItemInterface $item) use (
-            $produitRepository, $page, $limit
+            $produitRepository, $page, $limit, $paginator
         ) {
+            $pagination = $paginator->paginate(
+                $produitRepository->queryFindAllWithPagination(),
+                $page,
+                $limit
+            );
+            $item->expiresAfter(3600);
             $item->tag('produitsCache');
-            return $produitRepository->findAllWithPagination($page, $limit);
+            return new PaginatedRepresentation(
+                new CollectionRepresentation($pagination->getItems()),
+                'api_get_produits', // route
+                array('limit' => $limit, 'page' => $page),
+                (int)$pagination->getCurrentPageNumber(),
+                (int)$pagination->getItemNumberPerPage(),
+                ceil(intdiv((int)$pagination->getTotalItemCount(), (int)$pagination->getItemNumberPerPage())),
+            );
         });
 
         $jsonProduitslist = $serializer->serialize($produitsList, 'json');
