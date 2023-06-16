@@ -21,7 +21,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
             $status = $exception->getStatusCode();
         } else {
             $data = [
-                'message' => 'L\'application a rencontrer une erreur réassaye plus tard'
+                'message' => $exception->getMessage()
             ];
             $status = 500;
         }
