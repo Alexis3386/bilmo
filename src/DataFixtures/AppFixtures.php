@@ -28,6 +28,7 @@ class AppFixtures extends Fixture
 
         for ($i = 0; $i < 5; $i++) {
             $client = new Client();
+            $client->setRoles(["ROLE_ADMIN"]);
             $client->setAdresseMail("client{$i}@exemple.com");
             $client->setPassword($this->userPasswordHasher->hashPassword($client, 'password'));
             $manager->persist($client);
