@@ -74,3 +74,9 @@ exemple : https://adresse.com/api/client/users
 bearer : 
     mettre le token obtenue
 ```
+
+## Outils utilisés ##
+
+1. Symfony
+2. MySQL
+3. Insomnia
