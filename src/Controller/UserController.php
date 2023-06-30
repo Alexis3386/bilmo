@@ -120,7 +120,8 @@ class UserController extends AbstractController
         $idCache = 'getUser' . $utilisateur->getId();
         $utilisateurCache = $cachePool->get($idCache, function (ItemInterface $item) use ($utilisateur, $serializer, $client) {
             $item->tag('usersCache' . $client->getId());
-            return $serializer->serialize($utilisateur, 'json');
+            $context = SerializationContext::create()->setGroups(['getUser']);
+            return $serializer->serialize($utilisateur, 'json', $context);
         });
         return new JsonResponse($utilisateurCache, Response::HTTP_OK, [], true);
     }
@@ -129,7 +130,7 @@ class UserController extends AbstractController
      * @throws ORMException
      * @throws Exception
      */
-    #[Route('api/client/users/{id}', name: 'deleteUtilisateur', methods: ['DELETE'])]
+    #[Route('api/client/users/{id}', name: 'api_delete_user', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un utilisateur')]
     public function deleteUtilisateur(Utilisateur            $utilisateur,
                                       EntityManagerInterface $em,
@@ -139,7 +140,7 @@ class UserController extends AbstractController
         $client = $this->getUser();
 
         if (!$client->getUtilisateurs()->contains($utilisateur)) {
-            return new JsonResponse('Vous n\'avez les droits pour suppriler cette ressource', Response::HTTP_FORBIDDEN);
+            return new JsonResponse('Vous n\'avez pas les droits pour supprimer cette ressource', Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -152,5 +153,38 @@ class UserController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
-    
+    #[Route('api/client/users/{id}', name: "api_update_user", methods: ['PUT'])]
+    public function updateBook(Request                $request,
+                               SerializerInterface    $serializer,
+                               Utilisateur            $currentUser,
+                               EntityManagerInterface $em,
+                               ValidatorInterface     $validator,
+                               TagAwareCacheInterface $cache): JsonResponse
+    {
+
+        /** @var Client $client */
+        $client = $this->getUser();
+
+        if (!$client->getUtilisateurs()->contains($currentUser)) {
+            return new JsonResponse('Vous n\'avez pas les droits pour modifier cette ressource', Response::HTTP_FORBIDDEN);
+        }
+
+        $newUser = $serializer->deserialize($request->getContent(), Utilisateur::class, 'json');
+        $currentUser->setNom($newUser->getNom());
+        $currentUser->setAdresseMail($newUser->getAdresseMail());
+
+        $errors = $validator->validate($currentUser);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+        }
+
+        $currentUser->setClient($client);
+
+        $em->persist($currentUser);
+        $em->flush();
+
+        $cache->invalidateTags(['usersCache' . $client->getId()]);
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 }

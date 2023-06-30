@@ -44,9 +44,9 @@ class ProduitController extends AbstractController
                 new CollectionRepresentation($pagination->getItems()),
                 'api_get_produits', // route
                 array('limit' => $limit, 'page' => $page),
-                (int)$pagination->getCurrentPageNumber(),
-                (int)$pagination->getItemNumberPerPage(),
-                ceil(intdiv((int)$pagination->getTotalItemCount(), (int)$pagination->getItemNumberPerPage())),
+                $pagination->getCurrentPageNumber(),
+                $pagination->getItemNumberPerPage(),
+                ceil($pagination->getTotalItemCount() / $pagination->getItemNumberPerPage()),
             );
         });
 
