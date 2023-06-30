@@ -21,7 +21,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
             $status = $exception->getStatusCode();
         } else {
             $data = [
-                'message' => $exception->getMessage()
+                'message' => 'Le serveur est indisponible, réessayer dans quelques instants.'
             ];
             $status = 500;
         }
