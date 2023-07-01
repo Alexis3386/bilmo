@@ -55,7 +55,8 @@ class UserController extends AbstractController
 
         $cachePool->invalidateTags(['usersCache' . $client->getId()]);
 
-        $jsonUtilisateur = $serializer->serialize($utilisateur, 'json');
+        $context = SerializationContext::create()->setGroups(['getUser']);
+        $jsonUtilisateur = $serializer->serialize($utilisateur, 'json', $context);
         $location = $urlGenerator->generate('api_get_user', ['id' => $utilisateur->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonUtilisateur, Response::HTTP_CREATED, ['Location' => $location], true);
     }
@@ -131,7 +132,6 @@ class UserController extends AbstractController
      * @throws Exception
      */
     #[Route('api/client/users/{id}', name: 'api_delete_user', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un utilisateur')]
     public function deleteUtilisateur(Utilisateur            $utilisateur,
                                       EntityManagerInterface $em,
                                       TagAwareCacheInterface $cachePool): JsonResponse
@@ -154,7 +154,7 @@ class UserController extends AbstractController
     }
 
     #[Route('api/client/users/{id}', name: "api_update_user", methods: ['PUT'])]
-    public function updateBook(Request                $request,
+    public function updateUser(Request                $request,
                                SerializerInterface    $serializer,
                                Utilisateur            $currentUser,
                                EntityManagerInterface $em,
